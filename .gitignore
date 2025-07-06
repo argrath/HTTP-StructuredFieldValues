@@ -1,0 +1,11 @@
+﻿/blib
+/Build
+/Build.bat
+
+/cover_db
+
+/_build_params
+
+MYMETA.*
+
+author/structured-field-tests
