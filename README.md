@@ -43,6 +43,8 @@ and correctness.
 This implementation allows you to round-trip Perl data structures into
 well-formed Structured Field Value strings and back again.
 
+This is an alpha release. The API may be subject to change.
+
 # FUNCTIONS
 
 The following functions can be imported individually or via the `:all` tag.
@@ -94,7 +96,7 @@ or out-of-range numbers) will result in exceptions.
 
 # SEE ALSO
 
-RFC 9651 - Structured Field Values for HTTP
+`Tie::IxHash`
 
 # AUTHOR
 
