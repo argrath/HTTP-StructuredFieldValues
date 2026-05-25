@@ -245,24 +245,27 @@ sub generate_encode_test {
     my $expected_code = generate_expected_structure($test->{expected}, $header_type);
     my $canonical = B::perlstring($test->{canonical}[0]);
 
-    print $fh "{\n";
-    print $fh "    my \$test_name = '$name - encode only';\n";
-    print $fh "    my \$expected = $expected_code;\n";
-    print $fh "    my \$canonical = $canonical;\n";
-    print $fh "    \n";
-    print $fh "    my \$result = eval { encode(\$expected); };\n";
-    print $fh "    if (\$@) {\n";
-    print $fh "        fail(\$test_name);\n";
-    print $fh "        diag(\"Eecode error:\", \$@);\n";
-    print $fh "        diag(\"Input was: \", \$expected);\n";
-    print $fh "    } else {\n";
-    print $fh "        is(\$result, \$canonical, \$test_name) or do {\n";
-    print $fh "            diag(\"Got: \", explain(\$result));\n";
-    print $fh "            diag(\"Expected: \", explain(\$canonical));\n";
-    print $fh "            diag(\"Input was: \", explain(\$expected));\n";
-    print $fh "        };\n";
-    print $fh "    }\n";
-    print $fh "}\n\n";
+    print $fh <<"CODE";
+{
+    my \$test_name = '$name - encode only';
+    my \$expected = $expected_code;
+    my \$canonical = $canonical;
+    
+    my \$result = eval { encode(\$expected); };
+    if (\$@) {
+        fail(\$test_name);
+        diag("Eecode error:", \$@);
+        diag("Input was: ", \$expected);
+    } else {
+        is(\$result, \$canonical, \$test_name) or do {
+            diag("Got: ", explain(\$result));
+            diag("Expected: ", explain(\$canonical));
+            diag("Input was: ", explain(\$expected));
+        };
+    }
+}
+
+CODE
 }
 
 sub generate_failed_encode_test {
@@ -270,45 +273,54 @@ sub generate_failed_encode_test {
 
     my $expected_code = generate_expected_structure($test->{expected}, $header_type);
 
-    print $fh "{\n";
-    print $fh "    my \$test_name = '$name - must fail';\n";
-    print $fh "    my \$expected = $expected_code;\n";
-    print $fh "    \n";
-    print $fh "    eval { encode(\$expected); };\n";
-    print $fh "    if (\$@) {\n";
-    print $fh "        note(\$@);\n";
-    print $fh "        pass(\$test_name);\n";
-    print $fh "    } else {\n";
-    print $fh "        diag(\"Expected failure but got success\");\n";
-    print $fh "        fail(\$test_name);\n";
-    print $fh "    }\n";
-    print $fh "}\n\n";
+    print $fh <<"CODE";
+{
+    my \$test_name = '$name - must fail';
+    my \$expected = $expected_code;
+    
+    eval { encode(\$expected); };
+    if (\$@) {
+        note(\$@);
+        pass(\$test_name);
+    } else {
+        diag("Expected failure but got success");
+        fail(\$test_name);
+    }
+}
+
+CODE
 }
 
 # Generate must-fail test
 sub generate_must_fail_test {
     my ($fh, $name, $input_code, $header_type) = @_;
     
-    print $fh "{\n";
-    print $fh "    my \$test_name = '$name - must fail';\n";
-    print $fh "    my \$input = $input_code;\n";
-    print $fh "    \n";
-    print $fh "    eval { decode_$header_type(\$input); };\n";
-    print $fh "    ok(\$@, \$test_name) or diag(\"Expected failure but got success\");\n";
-    print $fh "}\n\n";
+    print $fh <<"CODE";
+{
+    my \$test_name = '$name - must fail';
+    my \$input = $input_code;
+    
+    eval { decode_$header_type(\$input); };
+    ok(\$@, \$test_name) or diag("Expected failure but got success");
+}
+
+CODE
 }
 
 # Generate can-fail test
 sub generate_can_fail_test {
     my ($fh, $name, $input_code, $header_type) = @_;
     
-    print $fh "{\n";
-    print $fh "    my \$test_name = '$name - can fail';\n";
-    print $fh "    my \$input = $input_code;\n";
-    print $fh "    \n";
-    print $fh "    eval { decode_$header_type(\$input); };\n";
-    print $fh "    pass(\$test_name); # Can fail tests always pass\n";
-    print $fh "}\n\n";
+    print $fh <<"CODE";
+{
+    my \$test_name = '$name - can fail';
+    my \$input = $input_code;
+    
+    eval { decode_$header_type(\$input); };
+    pass(\$test_name); # Can fail tests always pass
+}
+
+CODE
 }
 
 # Generate normal test
