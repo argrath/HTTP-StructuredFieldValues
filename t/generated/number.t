@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from number.json
-# Total tests: 33
+# Total tests: 36
 
-plan tests => 33;
+plan tests => 36;
 
 # Test 1: basic integer
 subtest "basic integer" => sub {
@@ -346,7 +346,44 @@ subtest "long integer" => sub {
     }
 };
 
-# Test 14: long negative integer
+# Test 14: long integer followed by comma
+subtest "long integer followed by comma" => sub {
+    my $test_name = "long integer followed by comma";
+    my $input = "123456789012345, 1";
+    my $expected = [
+        { _type => 'integer', value => 123456789012345 },
+        { _type => 'integer', value => 1 }
+    ];
+    my $canonical = $input;
+    
+    my $result = eval { decode_list($input); };
+    
+    if ($@) {
+        fail($test_name);
+        diag("Decode error: $@");
+        diag("Input was: $input");
+    } else {
+        is_deeply($result, $expected, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($expected));
+            diag("Input was: ", $input);
+        };
+    }
+    $result = eval { encode($expected); };
+    if ($@) {
+        fail($test_name);
+        diag("Encode error:", $@);
+        diag("Input was: ", explain($expected));
+    } else {
+        is($result, $canonical, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($canonical));
+            diag("Input was: ", explain($expected));
+        };
+    }
+};
+
+# Test 15: long negative integer
 subtest "long negative integer" => sub {
     my $test_name = "long negative integer";
     my $input = "-123456789012345";
@@ -380,7 +417,7 @@ subtest "long negative integer" => sub {
     }
 };
 
-# Test 15: too long integer
+# Test 16: too long integer
 {
     my $test_name = 'too long integer - must fail';
     my $input = "1234567890123456";
@@ -389,7 +426,16 @@ subtest "long negative integer" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 16: negative too long integer
+# Test 17: too long integer followed by comma
+{
+    my $test_name = 'too long integer followed by comma - must fail';
+    my $input = "1234567890123456, 1";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 18: negative too long integer
 {
     my $test_name = 'negative too long integer - must fail';
     my $input = "-1234567890123456";
@@ -398,7 +444,7 @@ subtest "long negative integer" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 17: simple decimal
+# Test 19: simple decimal
 subtest "simple decimal" => sub {
     my $test_name = "simple decimal";
     my $input = "1.23";
@@ -432,7 +478,7 @@ subtest "simple decimal" => sub {
     }
 };
 
-# Test 18: negative decimal
+# Test 20: negative decimal
 subtest "negative decimal" => sub {
     my $test_name = "negative decimal";
     my $input = "-1.23";
@@ -466,7 +512,7 @@ subtest "negative decimal" => sub {
     }
 };
 
-# Test 19: decimal, whitespace after decimal
+# Test 21: decimal, whitespace after decimal
 {
     my $test_name = 'decimal, whitespace after decimal - must fail';
     my $input = "1. 23";
@@ -475,7 +521,7 @@ subtest "negative decimal" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 20: decimal, whitespace before decimal
+# Test 22: decimal, whitespace before decimal
 {
     my $test_name = 'decimal, whitespace before decimal - must fail';
     my $input = "1 .23";
@@ -484,7 +530,7 @@ subtest "negative decimal" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 21: negative decimal, whitespace after sign
+# Test 23: negative decimal, whitespace after sign
 {
     my $test_name = 'negative decimal, whitespace after sign - must fail';
     my $input = "- 1.23";
@@ -493,7 +539,44 @@ subtest "negative decimal" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 22: tricky precision decimal
+# Test 24: decimal, followed by comma
+subtest "decimal, followed by comma" => sub {
+    my $test_name = "decimal, followed by comma";
+    my $input = "123456789012.123, 1.1";
+    my $expected = [
+        { _type => 'decimal', value => 123456789012.123 },
+        { _type => 'decimal', value => 1.1 }
+    ];
+    my $canonical = $input;
+    
+    my $result = eval { decode_list($input); };
+    
+    if ($@) {
+        fail($test_name);
+        diag("Decode error: $@");
+        diag("Input was: $input");
+    } else {
+        is_deeply($result, $expected, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($expected));
+            diag("Input was: ", $input);
+        };
+    }
+    $result = eval { encode($expected); };
+    if ($@) {
+        fail($test_name);
+        diag("Encode error:", $@);
+        diag("Input was: ", explain($expected));
+    } else {
+        is($result, $canonical, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($canonical));
+            diag("Input was: ", explain($expected));
+        };
+    }
+};
+
+# Test 25: tricky precision decimal
 subtest "tricky precision decimal" => sub {
     my $test_name = "tricky precision decimal";
     my $input = "123456789012.1";
@@ -527,7 +610,7 @@ subtest "tricky precision decimal" => sub {
     }
 };
 
-# Test 23: double decimal decimal
+# Test 26: double decimal decimal
 {
     my $test_name = 'double decimal decimal - must fail';
     my $input = "1.5.4";
@@ -536,7 +619,7 @@ subtest "tricky precision decimal" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 24: adjacent double decimal decimal
+# Test 27: adjacent double decimal decimal
 {
     my $test_name = 'adjacent double decimal decimal - must fail';
     my $input = "1..4";
@@ -545,7 +628,7 @@ subtest "tricky precision decimal" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 25: decimal with three fractional digits
+# Test 28: decimal with three fractional digits
 subtest "decimal with three fractional digits" => sub {
     my $test_name = "decimal with three fractional digits";
     my $input = "1.123";
@@ -579,7 +662,7 @@ subtest "decimal with three fractional digits" => sub {
     }
 };
 
-# Test 26: negative decimal with three fractional digits
+# Test 29: negative decimal with three fractional digits
 subtest "negative decimal with three fractional digits" => sub {
     my $test_name = "negative decimal with three fractional digits";
     my $input = "-1.123";
@@ -613,7 +696,7 @@ subtest "negative decimal with three fractional digits" => sub {
     }
 };
 
-# Test 27: decimal with four fractional digits
+# Test 30: decimal with four fractional digits
 {
     my $test_name = 'decimal with four fractional digits - must fail';
     my $input = "1.1234";
@@ -622,7 +705,7 @@ subtest "negative decimal with three fractional digits" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 28: negative decimal with four fractional digits
+# Test 31: negative decimal with four fractional digits
 {
     my $test_name = 'negative decimal with four fractional digits - must fail';
     my $input = "-1.1234";
@@ -631,7 +714,7 @@ subtest "negative decimal with three fractional digits" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 29: decimal with thirteen integer digits
+# Test 32: decimal with thirteen integer digits
 {
     my $test_name = 'decimal with thirteen integer digits - must fail';
     my $input = "1234567890123.0";
@@ -640,7 +723,7 @@ subtest "negative decimal with three fractional digits" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 30: negative decimal with thirteen integer digits
+# Test 33: negative decimal with thirteen integer digits
 {
     my $test_name = 'negative decimal with thirteen integer digits - must fail';
     my $input = "-1234567890123.0";
@@ -649,7 +732,7 @@ subtest "negative decimal with three fractional digits" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 31: decimal with 1 significant digit and 1 insignificant digit
+# Test 34: decimal with 1 significant digit and 1 insignificant digit
 subtest "decimal with 1 significant digit and 1 insignificant digit" => sub {
     my $test_name = "decimal with 1 significant digit and 1 insignificant digit";
     my $input = "1.20";
@@ -683,7 +766,7 @@ subtest "decimal with 1 significant digit and 1 insignificant digit" => sub {
     }
 };
 
-# Test 32: decimal with 1 significant digit and 2 insignificant digits
+# Test 35: decimal with 1 significant digit and 2 insignificant digits
 subtest "decimal with 1 significant digit and 2 insignificant digits" => sub {
     my $test_name = "decimal with 1 significant digit and 2 insignificant digits";
     my $input = "1.200";
@@ -717,7 +800,7 @@ subtest "decimal with 1 significant digit and 2 insignificant digits" => sub {
     }
 };
 
-# Test 33: decimal with 2 significant digits and 1 insignificant digit
+# Test 36: decimal with 2 significant digits and 1 insignificant digit
 subtest "decimal with 2 significant digits and 1 insignificant digit" => sub {
     my $test_name = "decimal with 2 significant digits and 1 insignificant digit";
     my $input = "1.230";

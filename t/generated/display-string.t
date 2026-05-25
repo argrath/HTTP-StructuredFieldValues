@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from display-string.json
-# Total tests: 20
+# Total tests: 22
 
-plan tests => 20;
+plan tests => 22;
 
 # Test 1: basic display string (ascii content)
 subtest "basic display string (ascii content)" => sub {
@@ -333,4 +333,47 @@ subtest "BOM in display string" => sub {
     eval { decode_item($input); };
     pass($test_name); # Can fail tests always pass
 }
+
+# Test 21: truncated display string escape (zero digits)
+{
+    my $test_name = 'truncated display string escape (zero digits) - must fail';
+    my $input = "%\"%\"";
+    
+    eval { decode_item($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 22: over-encoded display string
+subtest "over-encoded display string" => sub {
+    my $test_name = "over-encoded display string";
+    my $input = "%\"%61\"";
+    my $expected = { _type => 'displaystring', value => 'a' };
+    my $canonical = "%\"a\"";
+    
+    my $result = eval { decode_item($input); };
+    
+    if ($@) {
+        fail($test_name);
+        diag("Decode error: $@");
+        diag("Input was: $input");
+    } else {
+        is_deeply($result, $expected, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($expected));
+            diag("Input was: ", $input);
+        };
+    }
+    $result = eval { encode($expected); };
+    if ($@) {
+        fail($test_name);
+        diag("Encode error:", $@);
+        diag("Input was: ", explain($expected));
+    } else {
+        is($result, $canonical, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($canonical));
+            diag("Input was: ", explain($expected));
+        };
+    }
+};
 

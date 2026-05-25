@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from boolean.json
-# Total tests: 11
+# Total tests: 12
 
-plan tests => 11;
+plan tests => 12;
 
 # Test 1: basic true boolean
 subtest "basic true boolean" => sub {
@@ -173,6 +173,15 @@ subtest "basic false boolean" => sub {
 {
     my $test_name = 'spelled-out False boolean - must fail';
     my $input = "?False";
+    
+    eval { decode_item($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 12: boolean prefix only
+{
+    my $test_name = 'boolean prefix only - must fail';
+    my $input = "?";
     
     eval { decode_item($input); };
     ok($@, $test_name) or diag("Expected failure but got success");

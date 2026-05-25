@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from listlist.json
-# Total tests: 10
+# Total tests: 12
 
-plan tests => 10;
+plan tests => 12;
 
 # Test 1: basic list of lists
 subtest "basic list of lists" => sub {
@@ -255,6 +255,24 @@ subtest "extra whitespace list of lists" => sub {
 {
     my $test_name = 'no closing parenthesis - must fail';
     my $input = "(";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 11: nested inner lists
+{
+    my $test_name = 'nested inner lists - must fail';
+    my $input = "((1))";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 12: dictionary in inner list
+{
+    my $test_name = 'dictionary in inner list - must fail';
+    my $input = "(a=1)";
     
     eval { decode_list($input); };
     ok($@, $test_name) or diag("Expected failure but got success");

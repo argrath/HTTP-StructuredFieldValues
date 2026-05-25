@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from param-list.json
-# Total tests: 13
+# Total tests: 20
 
-plan tests => 13;
+plan tests => 20;
 
 # Test 1: basic parameterised list
 subtest "basic parameterised list" => sub {
@@ -356,6 +356,119 @@ subtest "two lines parameterised list" => sub {
 {
     my $test_name = 'empty item parameterised list - must fail';
     my $input = "text/html,,text/plain;q=0.5,";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 14: duplicate parameter with different positions
+subtest "duplicate parameter with different positions" => sub {
+    my $test_name = "duplicate parameter with different positions";
+    my $input = "a;b=1;c=2;b=3";
+    my $expected = [ { _type => 'token', value => "a", params => _h( "b" => { _type => 'integer', value => 3 }, "c" => { _type => 'integer', value => 2 } ) } ];
+    my $canonical = "a;b=3;c=2";
+    
+    my $result = eval { decode_list($input); };
+    
+    if ($@) {
+        fail($test_name);
+        diag("Decode error: $@");
+        diag("Input was: $input");
+    } else {
+        is_deeply($result, $expected, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($expected));
+            diag("Input was: ", $input);
+        };
+    }
+    $result = eval { encode($expected); };
+    if ($@) {
+        fail($test_name);
+        diag("Encode error:", $@);
+        diag("Input was: ", explain($expected));
+    } else {
+        is($result, $canonical, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($canonical));
+            diag("Input was: ", explain($expected));
+        };
+    }
+};
+
+# Test 15: parameter ordering
+subtest "parameter ordering" => sub {
+    my $test_name = "parameter ordering";
+    my $input = "a;m;z;t";
+    my $expected = [ { _type => 'token', value => "a", params => _h( "m" => { _type => 'boolean', value => 1 }, "z" => { _type => 'boolean', value => 1 }, "t" => { _type => 'boolean', value => 1 } ) } ];
+    my $canonical = $input;
+    
+    my $result = eval { decode_list($input); };
+    
+    if ($@) {
+        fail($test_name);
+        diag("Decode error: $@");
+        diag("Input was: $input");
+    } else {
+        is_deeply($result, $expected, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($expected));
+            diag("Input was: ", $input);
+        };
+    }
+    $result = eval { encode($expected); };
+    if ($@) {
+        fail($test_name);
+        diag("Encode error:", $@);
+        diag("Input was: ", explain($expected));
+    } else {
+        is($result, $canonical, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($canonical));
+            diag("Input was: ", explain($expected));
+        };
+    }
+};
+
+# Test 16: trailing semicolon in parameters
+{
+    my $test_name = 'trailing semicolon in parameters - must fail';
+    my $input = "a;b=1;";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 17: trailing semicolon and space in parameters
+{
+    my $test_name = 'trailing semicolon and space in parameters - must fail';
+    my $input = "a;b=1; ";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 18: empty parameter key
+{
+    my $test_name = 'empty parameter key - must fail';
+    my $input = "a;=1";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 19: parameter prefix only
+{
+    my $test_name = 'parameter prefix only - must fail';
+    my $input = "a;";
+    
+    eval { decode_list($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 20: parameter prefix and space only
+{
+    my $test_name = 'parameter prefix and space only - must fail';
+    my $input = "a; ";
     
     eval { decode_list($input); };
     ok($@, $test_name) or diag("Expected failure but got success");

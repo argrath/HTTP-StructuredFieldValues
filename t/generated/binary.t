@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from binary.json
-# Total tests: 14
+# Total tests: 15
 
-plan tests => 14;
+plan tests => 15;
 
 # Test 1: basic binary
 subtest "basic binary" => sub {
@@ -225,6 +225,15 @@ subtest "non-ASCII binary" => sub {
 {
     my $test_name = 'base64url binary - must fail';
     my $input = ":_-Ah:";
+    
+    eval { decode_item($input); };
+    ok($@, $test_name) or diag("Expected failure but got success");
+}
+
+# Test 15: binary prefix only
+{
+    my $test_name = 'binary prefix only - must fail';
+    my $input = ":";
     
     eval { decode_item($input); };
     ok($@, $test_name) or diag("Expected failure but got success");

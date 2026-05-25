@@ -25,9 +25,9 @@ sub _h {
 }
 
 # Generated from dictionary.json
-# Total tests: 25
+# Total tests: 26
 
-plan tests => 25;
+plan tests => 26;
 
 # Test 1: basic dictionary
 subtest "basic dictionary" => sub {
@@ -723,7 +723,45 @@ subtest "duplicate key dictionary" => sub {
     }
 };
 
-# Test 23: numeric key dictionary
+# Test 23: dictionary key ordering
+subtest "dictionary key ordering" => sub {
+    my $test_name = "dictionary key ordering";
+    my $input = "m, z, t";
+    my $expected = _h(
+        "m" => { _type => 'boolean', value => 1 },
+        "z" => { _type => 'boolean', value => 1 },
+        "t" => { _type => 'boolean', value => 1 }
+    );
+    my $canonical = $input;
+    
+    my $result = eval { decode_dictionary($input); };
+    
+    if ($@) {
+        fail($test_name);
+        diag("Decode error: $@");
+        diag("Input was: $input");
+    } else {
+        is_deeply($result, $expected, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($expected));
+            diag("Input was: ", $input);
+        };
+    }
+    $result = eval { encode($expected); };
+    if ($@) {
+        fail($test_name);
+        diag("Encode error:", $@);
+        diag("Input was: ", explain($expected));
+    } else {
+        is($result, $canonical, $test_name) or do {
+            diag("Got: ", explain($result));
+            diag("Expected: ", explain($canonical));
+            diag("Input was: ", explain($expected));
+        };
+    }
+};
+
+# Test 24: numeric key dictionary
 {
     my $test_name = 'numeric key dictionary - must fail';
     my $input = "a=1,1b=2,a=1";
@@ -732,7 +770,7 @@ subtest "duplicate key dictionary" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 24: uppercase key dictionary
+# Test 25: uppercase key dictionary
 {
     my $test_name = 'uppercase key dictionary - must fail';
     my $input = "a=1,B=2,a=1";
@@ -741,7 +779,7 @@ subtest "duplicate key dictionary" => sub {
     ok($@, $test_name) or diag("Expected failure but got success");
 }
 
-# Test 25: bad key dictionary
+# Test 26: bad key dictionary
 {
     my $test_name = 'bad key dictionary - must fail';
     my $input = "a=1,b!=2,a=1";
