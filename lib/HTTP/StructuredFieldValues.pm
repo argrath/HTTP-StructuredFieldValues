@@ -43,17 +43,23 @@ sub _encode_list {
             die "Invalid item in list";
         }
         if ($item->{_type} eq 'inner_list') {
-            my $items = $item->{value};
-            my $params = $item->{params} || {};
-            my $inner = _encode_inner_list($items);
-            $inner .= _encode_parameters($params);
-            push @parts, $inner;
+            push @parts, _encode_inner_list_item($item);
         } else {
             push @parts, _encode_item($item);
         }
     }
     
     return join(', ', @parts);
+}
+
+# Encode inner list with parameters
+sub _encode_inner_list_item {
+    my ($item) = @_;
+    my $items = $item->{value};
+    my $params = $item->{params} || {};
+    my $inner = _encode_inner_list($items);
+    $inner .= _encode_parameters($params);
+    return $inner;
 }
 
 # Encode Inner list (RFC 9651 Section 4.1.1.1)
@@ -120,10 +126,7 @@ sub _encode_dictionary {
         } else {
             $item = $encoded_key . '=';
             if ($value->{_type} eq 'inner_list') {
-                my $items = $value->{value};
-                my $params = $value->{params} || {};
-                $item .= _encode_inner_list($items);
-                $item .= _encode_parameters($params);
+                $item .= _encode_inner_list_item($value);
             } else {
                 $item .= _encode_item($value);
             }
@@ -252,6 +255,15 @@ sub _encode_displaystring {
     return $output;
 }
 
+# Parse and consume a key from the front of string
+sub _parse_key {
+    my ($string) = @_;
+    return (undef, $string) unless $string =~ /^([a-z*][a-z0-9_\-.*]*)/;
+    my $key = $1;
+    $string =~ s/^[a-z*][a-z0-9_\-.*]*//;
+    return ($key, $string);
+}
+
 sub _valid_data_type {
     my ($data) = @_;
     return ref($data) eq 'HASH' 
@@ -375,11 +387,9 @@ sub decode_dictionary {
     
     $string =~ s/^ *//;
     while ($string =~ /^[^ ]/) {
-        if ($string !~ /^([a-z*][a-z0-9_\-.*]*)/) {
-            die "Invalid dictionary key format: $string";
-        }
-        my $key = $1;
-        $string =~ s/^[a-z*][a-z0-9_\-.*]*//;
+        my ($key, $rest_after_key) = _parse_key($string);
+        die "Invalid dictionary key format: $string" unless defined $key;
+        $string = $rest_after_key;
         
         if ($string =~ /^=/) {
             $string =~ s/^=//;
@@ -461,11 +471,9 @@ sub _decode_parameters {
     
     while ($string =~ /^;/) {
         $string =~ s/^; *//;
-        if ($string !~ /^([a-z*][a-z0-9_\-.*]*)/) {
-            die "Invalid parameter format: $string";
-        }
-        my $key = $1;
-        $string =~ s/^([a-z*][a-z0-9_\-.*]*)//;
+        my ($key, $rest_after_key) = _parse_key($string);
+        die "Invalid parameter format: $string" unless defined $key;
+        $string = $rest_after_key;
         
         if ($string =~ /^=/) {
             $string =~ s/^=//;
