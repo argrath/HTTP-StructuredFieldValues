@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use JSON::PP;
+use Cpanel::JSON::XS;
 use File::Find;
 use File::Basename;
 use File::Path qw(make_path);
@@ -51,7 +51,7 @@ print "Found " . scalar(@test_files) . " test files\n" if $verbose;
 my %all_tests;
 my $total_tests = 0;
 my $skipped_tests = 0;
-my $json = JSON::PP->new->allow_bignum->utf8;
+my $json = Cpanel::JSON::XS->new->allow_bignum->utf8;
 
 for my $file (sort @test_files) {
     print "\nProcessing $file...\n" if $verbose;
