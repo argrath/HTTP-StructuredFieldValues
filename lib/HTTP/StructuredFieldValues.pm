@@ -217,7 +217,7 @@ sub _encode_string {
 # Encode token (RFC 9651 Section 4.1.7)
 sub _encode_token {
     my ($token) = @_;
-    die "Invalid key: $token" unless $token =~ /^([a-zA-Z*][a-zA-Z0-9:\/!#\$%&'*+\-.^_`|~]*)$/;
+    die "Invalid token: $token" unless $token =~ /^([a-zA-Z*][a-zA-Z0-9:\/!#\$%&'*+\-.^_`|~]*)$/;
     return $token;
 }
 
@@ -308,14 +308,14 @@ sub decode_list {
         $string =~ s/^\s*//;
         last if $string eq '';
         if ($string !~ /^,/) {
-            die "Expected comma after dictionary item: $string";
+            die "Expected comma after list item: $string";
         }
         $string =~ s/^,\s*//;
         if ($string eq '') {
-            die "Unexpected end of string after comma in dictionary: $string";
+            die "Unexpected end of string after comma in list: $string";
         }
     }
-    
+
     return \@list;
 }
 
@@ -435,7 +435,7 @@ sub _decode_item {
     return ($bare_item, $rest);
 }
 
-# Decode bare item (RFC 9841 Section 4.2.3.1)
+# Decode bare item (RFC 9651 Section 4.2.3.1)
 sub _decode_bare_item {
     my ($string) = @_;
     
@@ -489,7 +489,7 @@ sub _decode_parameters {
     return ($params, $string);
 }
 
-# Decode Number (RFC 9841 Section 4.2.4)
+# Decode Number (RFC 9651 Section 4.2.4)
 sub _decode_number {
     my ($string) = @_;
     my $v = $string;
@@ -538,7 +538,7 @@ sub _decode_number {
     return ({ _type => 'decimal', value => ($sign . $i . '.' . $f) + 0 }, $string);
 }
 
-# Decode String (RFC 9841 Section 4.2.5)
+# Decode String (RFC 9651 Section 4.2.5)
 sub _decode_string {
     my ($string) = @_;
     
@@ -568,7 +568,7 @@ sub _decode_string {
     die "Unterminated string";
 }
 
-# Decode Token (RFC 9841 Section 4.2.6)
+# Decode Token (RFC 9651 Section 4.2.6)
 sub _decode_token {
     my ($string) = @_;
     
@@ -578,7 +578,7 @@ sub _decode_token {
     return ({ _type => 'token', value => $token }, $string);
 }
 
-# Decode Binary (RFC 9841 Section 4.2.7)
+# Decode Binary (RFC 9651 Section 4.2.7)
 sub _decode_binary {
     my ($string) = @_;
     
@@ -595,7 +595,7 @@ sub _decode_binary {
     die "Expected binary value, got: " . $string;
 }
 
-# Decode Boolean (RFC 9841 Section 4.2.8)
+# Decode Boolean (RFC 9651 Section 4.2.8)
 sub _decode_boolean {
     my ($string) = @_;
     
@@ -608,7 +608,7 @@ sub _decode_boolean {
     die "Expected boolean value, got: $string";
 }
 
-# Decode Date (RFC 9841 Section 4.2.9)
+# Decode Date (RFC 9651 Section 4.2.9)
 sub _decode_date {
     my ($string) = @_;
 
